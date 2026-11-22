@@ -21,7 +21,7 @@ Find out what he is doing and inform me immediately...
 
 ## Initial Analysis
 
-After opening the provided file in Wireshark, I noticed that it did not contain any network traffic. Instead, every packet was USB traffic captured with Linux `usbmon`.
+After opening the provided file in Wireshark, I noticed that it did not contain any network traffic. Instead, every packet was USB traffic captured with Linux [`usbmon`](https://www.kernel.org/doc/html/latest/usb/usbmon.html).
 
 All packets came from the same device (`1.2.3`) and used an interrupt IN endpoint (`0x83`). The packets came in pairs:
 
@@ -40,7 +40,13 @@ Only the `C` (URB complete) packets carry data, so I extracted their payloads wi
 tshark -r data.pcapng -Y 'usb.urb_type == 0x43 && usb.capdata' -T fields -e usb.capdata
 ```
 
-(`0x43` is the ASCII code for `C`.)
+- `-r data.pcapng` – read packets from the capture file
+- `-Y '...'` – apply a [display filter](https://www.wireshark.org/docs/man-pages/wireshark-filter.html):
+  - `usb.urb_type == 0x43` – keep only URB complete packets (`0x43` is the ASCII code for `C`, see the [usbmon documentation](https://www.kernel.org/doc/html/latest/usb/usbmon.html))
+  - `usb.capdata` – keep only packets that carry payload data
+- `-T fields -e usb.capdata` – print only the raw payload bytes
+
+All options are described in the [tshark manual](https://www.wireshark.org/docs/man-pages/tshark.html), and the `usb.*` field names are listed in Wireshark's [USB display filter reference](https://www.wireshark.org/docs/dfref/u/usb.html).
 
 A few of the extracted reports looked like this:
 
@@ -87,7 +93,7 @@ My first idea was to just take the first keycode from each report and map it to 
 
 ### 4. Implementing a Python Decoder
 
-To handle all of this, I wrote a decoder in Python using Scapy to read the capture file:
+To handle all of this, I wrote a decoder in Python using [Scapy](https://scapy.readthedocs.io/) to read the capture file:
 
 ```python
 from scapy.utils import PcapNgReader
@@ -219,3 +225,11 @@ MCTF26{m4RT1N5_kn0w5_Wh4t_y0u_wr0T3}
 - Not every keyboard uses the standard 8-byte boot report, so the report format should be checked before writing a decoder.
 - Caps Lock, Shift and Backspace all have to be handled, otherwise the decoded flag will be wrong.
 - Captured USB keyboard traffic can expose sensitive information such as email addresses and passwords, which is why malicious USB devices and hardware keyloggers are a real threat.
+
+## References
+- [tshark manual page](https://www.wireshark.org/docs/man-pages/tshark.html)
+- [Wireshark display filter syntax](https://www.wireshark.org/docs/man-pages/wireshark-filter.html)
+- [Wireshark USB display filter fields](https://www.wireshark.org/docs/dfref/u/usb.html)
+- [Linux usbmon documentation](https://www.kernel.org/doc/html/latest/usb/usbmon.html)
+- [USB HID Usage Tables 1.5](https://usb.org/sites/default/files/hut1_5.pdf)
+- [Scapy documentation](https://scapy.readthedocs.io/)
