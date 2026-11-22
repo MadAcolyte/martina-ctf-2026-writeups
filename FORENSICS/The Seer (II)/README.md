@@ -21,7 +21,7 @@ Find out what he is doing...
 
 ## Initial Analysis
 
-Like in [The Seer (I)](../The%20Seer%20(I)/README.md), the capture contained no network traffic, only USB traffic captured with Linux [`usbmon`](https://www.kernel.org/doc/html/latest/usb/usbmon.html).
+Like in [The Seer (I)](../THE%20SEER%20(I)/README.md), the capture contained no network traffic, only USB traffic captured with Linux [`usbmon`](https://www.kernel.org/doc/html/latest/usb/usbmon.html).
 
 Almost all packets again came from device `1.2.3` over the interrupt IN endpoint `0x83`, in Submit (`S`, 64 bytes) and Complete (`C`, 79 bytes) pairs. The only other packets were 3 short control transfers on endpoint `0x00`, which did not contain anything useful.
 
